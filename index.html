@@ -7,10 +7,8 @@
 
     <title>Meu Painel de Tarefas</title>
 
-    
     <link rel="stylesheet" href="style.css">
 
-    
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -19,32 +17,60 @@
 
 <body>
 
-    <div class="cartao-aplicacao">
+    <main class="cartao-aplicacao">
 
         <header class="cabecalho-aplicacao">
 
-            <h1>Minhas Tarefas ✨</h1>
+            <div class="perfil">
+                <img
+                    src="paizani.jpg"
+                    alt="Minha foto"
+                    class="foto-perfil"
+                >
 
-            
-            <button
-                id="botao-tema"
-                class="botao-principal"
-                type="button"
-            >
-                <i class="fa-solid fa-moon"></i>
-            </button>
+                <div>
+                    <h1>
+                        Minhas Tarefas
+                        <span class="estrela">✨</span>
+                    </h1>
+
+                    <p class="subtitulo">
+                        Organize seu dia de forma simples
+                    </p>
+                </div>
+            </div>
+
+            <div class="acoes-cabecalho">
+
+                <button
+                    id="botao-atualizar"
+                    class="botao-icone"
+                    type="button"
+                    title="Atualizar"
+                >
+                    <i class="fa-solid fa-rotate"></i>
+                </button>
+
+                <button
+                    id="botao-tema"
+                    class="botao-icone"
+                    type="button"
+                    title="Modo escuro"
+                >
+                    <i class="fa-solid fa-moon"></i>
+                </button>
+
+            </div>
 
         </header>
 
-
-        
-        <div class="caixa-entrada">
+        <section class="caixa-entrada">
 
             <input
                 type="text"
                 id="campo-tarefa"
-                placeholder="O que vamos fazer hoje?..."
-                maxlength="40"
+                placeholder="O que vamos fazer hoje?"
+                maxlength="80"
             >
 
             <button
@@ -56,31 +82,152 @@
                 Adicionar
             </button>
 
-        </div>
+        </section>
 
+        <section class="opcoes-tarefa">
 
-       
+            <div class="campo-opcao">
+                <label for="prioridade">
+                    Prioridade
+                </label>
+
+                <select id="prioridade">
+                    <option value="normal">Normal</option>
+                    <option value="alta">Alta</option>
+                    <option value="urgente">Urgente</option>
+                </select>
+            </div>
+
+            <div class="campo-opcao">
+                <label for="data-tarefa">
+                    Data
+                </label>
+
+                <input
+                    type="date"
+                    id="data-tarefa"
+                >
+            </div>
+
+        </section>
+
+        <section class="pesquisa">
+
+            <i class="fa-solid fa-magnifying-glass"></i>
+
+            <input
+                type="text"
+                id="campo-pesquisa"
+                placeholder="Pesquisar tarefas..."
+            >
+
+        </section>
+
+        <section class="estatisticas">
+
+            <div class="estatistica">
+                <strong id="total-tarefas">0</strong>
+                <span>Total</span>
+            </div>
+
+            <div class="estatistica">
+                <strong id="total-pendentes">0</strong>
+                <span>Pendentes</span>
+            </div>
+
+            <div class="estatistica">
+                <strong id="total-concluidas">0</strong>
+                <span>Concluídas</span>
+            </div>
+
+            <div class="estatistica">
+                <strong id="total-favoritas">0</strong>
+                <span>Favoritas</span>
+            </div>
+
+        </section>
+
+        <nav class="filtros">
+
+            <button
+                class="filtro ativo"
+                data-filtro="todas"
+                type="button"
+            >
+                Todas
+            </button>
+
+            <button
+                class="filtro"
+                data-filtro="pendentes"
+                type="button"
+            >
+                Pendentes
+            </button>
+
+            <button
+                class="filtro"
+                data-filtro="concluidas"
+                type="button"
+            >
+                Concluídas
+            </button>
+
+            <button
+                class="filtro"
+                data-filtro="favoritas"
+                type="button"
+            >
+                Favoritas
+            </button>
+
+            <button
+                class="filtro"
+                data-filtro="fixadas"
+                type="button"
+            >
+                Fixadas
+            </button>
+
+        </nav>
+
         <ul
             id="lista-tarefas"
             class="lista-tarefas"
+        ></ul>
+
+        <div
+            id="mensagem-vazia"
+            class="mensagem-vazia"
         >
-        </ul>
+            <i class="fa-solid fa-clipboard-check"></i>
 
+            <strong>Nenhuma tarefa encontrada</strong>
 
-        
+            <span>
+                Adicione uma tarefa para começar.
+            </span>
+        </div>
+
         <footer class="rodape-aplicacao">
 
             <span id="contador-tarefas">
-                0 tarefas na lista
+                0 tarefas
             </span>
+
+            <button
+                id="botao-limpar"
+                class="botao-limpar"
+                type="button"
+            >
+                <i class="fa-solid fa-broom"></i>
+                Limpar concluídas
+            </button>
 
         </footer>
 
-    </div>
+    </main>
 
-
-
-    
     <script src="script.js"></script>
 
 </body>
