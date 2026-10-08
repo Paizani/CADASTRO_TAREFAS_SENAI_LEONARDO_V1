@@ -7,8 +7,10 @@
 
     <title>Meu Painel de Tarefas</title>
 
+    <!-- Estilos principais da aplicação -->
     <link rel="stylesheet" href="style.css">
 
+    
     <link
         rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
@@ -17,8 +19,10 @@
 
 <body>
 
+    <!-- Container principal que encapsula todo o cartão do aplicativo -->
     <main class="cartao-aplicacao">
 
+        <!-- Cabeçalho: foto do perfil, título e botões de ação rápida -->
         <header class="cabecalho-aplicacao">
 
             <div class="perfil">
@@ -42,6 +46,7 @@
 
             <div class="acoes-cabecalho">
 
+                <!-- Botão para recarregar/re-renderizar a lista -->
                 <button
                     id="botao-atualizar"
                     class="botao-icone"
@@ -51,6 +56,7 @@
                     <i class="fa-solid fa-rotate"></i>
                 </button>
 
+                <!-- Botão para alternar entre Modo Claro e Escuro -->
                 <button
                     id="botao-tema"
                     class="botao-icone"
@@ -64,6 +70,7 @@
 
         </header>
 
+        <!-- Formulário para digitação e adição da nova tarefa -->
         <section class="caixa-entrada">
 
             <input
@@ -84,6 +91,7 @@
 
         </section>
 
+        <!-- Configurações da tarefa: Prioridade, Data limite e Criterio de Ordenação -->
         <section class="opcoes-tarefa">
 
             <div class="campo-opcao">
@@ -109,8 +117,21 @@
                 >
             </div>
 
+            <div class="campo-opcao">
+                <label for="select-ordenacao">
+                    Ordenar por
+                </label>
+
+                <select id="select-ordenacao">
+                    <option value="data">Data de Vencimento</option>
+                    <option value="urgencia">Urgência / Prioridade</option>
+                    <option value="padrao">Mais Recentes</option>
+                </select>
+            </div>
+
         </section>
 
+        <!-- Campo de busca em tempo real -->
         <section class="pesquisa">
 
             <i class="fa-solid fa-magnifying-glass"></i>
@@ -123,6 +144,7 @@
 
         </section>
 
+        <!-- Painel de Métricas/Estatísticas dinâmicas -->
         <section class="estatisticas">
 
             <div class="estatistica">
@@ -147,6 +169,7 @@
 
         </section>
 
+        <!-- Abas para filtragem por status das tarefas -->
         <nav class="filtros">
 
             <button
@@ -191,11 +214,13 @@
 
         </nav>
 
+        <!-- Elemento HTML retornado pelo JS com as tarefas criadas -->
         <ul
             id="lista-tarefas"
             class="lista-tarefas"
         ></ul>
 
+        <!-- Mensagem amigável de estado vazio -->
         <div
             id="mensagem-vazia"
             class="mensagem-vazia"
@@ -209,6 +234,7 @@
             </span>
         </div>
 
+        <!-- Rodapé do cartão com resumo e ação em lote -->
         <footer class="rodape-aplicacao">
 
             <span id="contador-tarefas">
@@ -228,6 +254,7 @@
 
     </main>
 
+    <!-- Vinculação do arquivo de script JS -->
     <script src="script.js"></script>
 
 </body>
