@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
         fixar.addEventListener("click", () => alternarFixada(tarefa.id));
 
         const editar = criarBotaoAcao("fa-solid fa-pen", "Editar tarefa");
-        editar.addEventListener("click", () => editarTarefa(tarefa.id));
+        editar.addEventListener("click", () => editarTarefaInline(tarefa.id, texto));
 
         const excluir = criarBotaoAcao("fa-solid fa-trash", "Excluir tarefa", "excluir");
         excluir.addEventListener("click", () => excluirTarefa(tarefa.id));
@@ -223,38 +223,50 @@ document.addEventListener("DOMContentLoaded", () => {
         renderizarTarefas();
     }
 
-    function editarTarefa(id) {
+    // Edição inline sem abrir o prompt do navegador
+    function editarTarefaInline(id, elementoTexto) {
         const tarefa = tarefas.find(t => t.id === id);
         if (!tarefa) return;
 
-        const novoTexto = prompt("Editar tarefa:", tarefa.texto);
-        if (novoTexto === null) return;
+        const inputEdicao = document.createElement("input");
+        inputEdicao.type = "text";
+        inputEdicao.value = tarefa.texto;
+        inputEdicao.className = "input-edicao-inline";
+        inputEdicao.style.fontSize = "inherit";
+        inputEdicao.style.fontFamily = "inherit";
+        inputEdicao.style.width = "100%";
 
-        const textoLimpo = novoTexto.trim();
-        if (!textoLimpo) return;
+        elementoTexto.replaceWith(inputEdicao);
+        inputEdicao.focus();
 
-        tarefa.texto = textoLimpo;
-        salvarTarefas();
-        renderizarTarefas();
+        function salvarEdicao() {
+            const novoTexto = inputEdicao.value.trim();
+            if (novoTexto) {
+                tarefa.texto = novoTexto;
+                salvarTarefas();
+            }
+            renderizarTarefas();
+        }
+
+        inputEdicao.addEventListener("blur", salvarEdicao);
+        inputEdicao.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+                salvarEdicao();
+            } else if (e.key === "Escape") {
+                renderizarTarefas();
+            }
+        });
     }
 
+    // Exclusão direta sem chamar o confirm() nativo
     function excluirTarefa(id) {
-        if (!confirm("Deseja realmente excluir esta tarefa?")) return;
         tarefas = tarefas.filter(tarefa => tarefa.id !== id);
         salvarTarefas();
         renderizarTarefas();
     }
 
+    // Limpeza direta sem chamar o confirm() nativo
     function limparConcluidas() {
-        const quantidade = tarefas.filter(t => t.concluida).length;
-        if (quantidade === 0) return;
-
-        const mensagem = quantidade === 1
-            ? "Deseja excluir 1 tarefa concluída?"
-            : `Deseja excluir ${quantidade} tarefas concluídas?`;
-
-        if (!confirm(mensagem)) return;
-
         tarefas = tarefas.filter(tarefa => !tarefa.concluida);
         salvarTarefas();
         renderizarTarefas();
@@ -312,25 +324,29 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     function salvarTarefas() {
-        localStorage.setItem("minhasTarefas", JSON.stringify(tarefas));
-        localStorage.setItem("ordenacaoTarefas", ordenacaoAtual);
+        try {
+            localStorage.setItem("minhasTarefas", JSON.stringify(tarefas));
+            localStorage.setItem("ordenacaoTarefas", ordenacaoAtual);
+        } catch (e) {
+            console.error("Erro ao salvar no localStorage:", e);
+        }
     }
 
     function carregarTarefas() {
-        const tarefasSalvas = localStorage.getItem("minhasTarefas");
-        const ordenacaoSalva = localStorage.getItem("ordenacaoTarefas");
-
-        if (ordenacaoSalva) {
-            ordenacaoAtual = ordenacaoSalva;
-            if (selectOrdenacao) selectOrdenacao.value = ordenacaoSalva;
-        }
-
-        if (tarefasSalvas) {
-            try {
-                tarefas = JSON.parse(tarefasSalvas);
-            } catch {
-                tarefas = [];
+        try {
+            const ordenacaoSalva = localStorage.getItem("ordenacaoTarefas");
+            if (ordenacaoSalva) {
+                ordenacaoAtual = ordenacaoSalva;
+                if (selectOrdenacao) selectOrdenacao.value = ordenacaoSalva;
             }
+
+            const tarefasSalvas = localStorage.getItem("minhasTarefas");
+            if (tarefasSalvas) {
+                tarefas = JSON.parse(tarefasSalvas);
+            }
+        } catch (e) {
+            console.error("Erro ao carregar do localStorage:", e);
+            tarefas = [];
         }
 
         renderizarTarefas();
