@@ -1,8 +1,7 @@
 "use strict";
 
 document.addEventListener("DOMContentLoaded", () => {
-  const $ = (s, root = document) => root.querySelector(s);
-  const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+  const $ = (s, root = document) => root.querySelector(s);   const $$ = (s, root = document) => [...root.querySelectorAll(s)];
 
   const STORAGE_KEY = "taskflow_tarefas_v2";
   const SETTINGS_KEY = "taskflow_config_v2";
@@ -82,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function mostrarNotificacao(mensagem, tipo = "success") {
+    if (!el.toast) return;
     const toast = document.createElement("div");
     toast.className = `toast${tipo === "error" ? " error" : ""}`;
 
@@ -162,12 +162,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.body.classList.toggle("modo-escuro", escuro);
     configuracoes.tema = escuro ? "escuro" : "claro";
 
-    el.tema.innerHTML = escuro
-      ? '<i class="fa-solid fa-sun"></i>'
-      : '<i class="fa-solid fa-moon"></i>';
+    if (el.tema) {
+      el.tema.innerHTML = escuro
+        ? '<i class="fa-solid fa-sun"></i>'
+        : '<i class="fa-solid fa-moon"></i>';
 
-    el.tema.title = escuro ? "Ativar tema claro" : "Ativar tema escuro";
-    el.tema.setAttribute("aria-label", el.tema.title);
+      el.tema.title = escuro ? "Ativar tema claro" : "Ativar tema escuro";
+      el.tema.setAttribute("aria-label", el.tema.title);
+    }
 
     const meta = $('meta[name="theme-color"]');
     if (meta) meta.content = escuro ? "#191c29" : "#635bff";
@@ -188,7 +190,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       }
 
-      el.ordenacao.value = configuracoes.ordenacao;
+      if (el.ordenacao) el.ordenacao.value = configuracoes.ordenacao;
       aplicarTema(configuracoes.tema, false);
 
       let dados = localStorage.getItem(STORAGE_KEY);
@@ -198,13 +200,17 @@ document.addEventListener("DOMContentLoaded", () => {
         if (antigos !== null) {
           try {
             const lista = JSON.parse(antigos);
-            dados = JSON.stringify(Array.isArray(lista) ? lista.map(t => ({
-              ...t,
-              categoria: t.categoria || "Pessoal",
-              criadaEm: Number(t.id) || Date.now()
-            })) : []);
+            if (Array.isArray(lista)) {
+              tarefas = lista.map(t => normalizarTarefa({
+                ...t,
+                categoria: t.categoria || "Pessoal",
+                criadaEm: Number(t.id) || Date.now()
+              })).filter(Boolean);
+              salvarTarefas();
+              return;
+            }
           } catch {
-            dados = "[]";
+            tarefas = [];
           }
         }
       }
@@ -214,12 +220,10 @@ document.addEventListener("DOMContentLoaded", () => {
         if (!Array.isArray(parseado)) throw new Error("Formato de tarefas inválido");
         tarefas = parseado.map(normalizarTarefa).filter(Boolean);
       }
-
-      salvarTarefas();
     } catch (erro) {
       console.error("Erro ao carregar dados:", erro);
       tarefas = [];
-      mostrarNotificacao("Não foi possível ler os dados salvos. Verifique o console.", "error");
+      mostrarNotificacao("Não foi possível ler os dados salvos.", "error");
     }
   }
 
@@ -238,7 +242,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function obterTarefasFiltradas() {
-    const pesquisa = el.pesquisa.value.trim().toLocaleLowerCase("pt-BR");
+    const pesquisa = el.pesquisa ? el.pesquisa.value.trim().toLocaleLowerCase("pt-BR") : "";
 
     const resultado = tarefas.filter(t => {
       const corresponde =
@@ -397,26 +401,35 @@ document.addEventListener("DOMContentLoaded", () => {
     const favoritas = tarefas.filter(t => t.favorita);
     const fixadas = tarefas.filter(t => t.fixada);
 
-    el.total.textContent = tarefas.length;
-    el.pendentes.textContent = pendentes.length;
-    el.concluidas.textContent = concluidas.length;
-    el.atrasadas.textContent = atrasadas.length;
+    if (el.total) el.total.textContent = tarefas.length;
+    if (el.pendentes) el.pendentes.textContent = pendentes.length;
+    if (el.concluidas) el.concluidas.textContent = concluidas.length;
+    if (el.atrasadas) el.atrasadas.textContent = atrasadas.length;
 
-    $("#contagem-todas").textContent = tarefas.length;
-    $("#contagem-pendentes").textContent = pendentes.length;
-    $("#contagem-concluidas").textContent = concluidas.length;
-    $("#contagem-favoritas").textContent = favoritas.length;
-    $("#contagem-fixadas").textContent = fixadas.length;
-    $("#contagem-atrasadas").textContent = atrasadas.length;
+    const contTodas = $("#contagem-todas");
+    const contPendentes = $("#contagem-pendentes");
+    const contConcluidas = $("#contagem-concluidas");
+    const contFavoritas = $("#contagem-favoritas");
+    const contFixadas = $("#contagem-fixadas");
+    const contAtrasadas = $("#contagem-atrasadas");
+
+    if (contTodas) contTodas.textContent = tarefas.length;
+    if (contPendentes) contPendentes.textContent = pendentes.length;
+    if (contConcluidas) contConcluidas.textContent = concluidas.length;
+    if (contFavoritas) contFavoritas.textContent = favoritas.length;
+    if (contFixadas) contFixadas.textContent = fixadas.length;
+    if (contAtrasadas) contAtrasadas.textContent = atrasadas.length;
 
     const percentual = tarefas.length ? Math.round(concluidas.length / tarefas.length * 100) : 0;
-    el.progresso.textContent = `${percentual}%`;
-    el.preenchimento.style.width = `${percentual}%`;
-    el.barra.setAttribute("aria-valuenow", percentual);
+    if (el.progresso) el.progresso.textContent = `${percentual}%`;
+    if (el.preenchimento) el.preenchimento.style.width = `${percentual}%`;
+    if (el.barra) el.barra.setAttribute("aria-valuenow", percentual);
 
-    el.resumoProgresso.textContent = tarefas.length
-      ? `${concluidas.length} de ${tarefas.length} tarefas concluídas. ${atrasadas.length ? `${atrasadas.length} precisam de atenção.` : "Continue assim!"}`
-      : "Você ainda não tem tarefas cadastradas.";
+    if (el.resumoProgresso) {
+      el.resumoProgresso.textContent = tarefas.length
+        ? `${concluidas.length} de ${tarefas.length} tarefas concluídas. ${atrasadas.length ? `${atrasadas.length} precisam de atenção.` : "Continue assim!"}`
+        : "Você ainda não tem tarefas cadastradas.";
+    }
   }
 
   function atualizarFiltros() {
@@ -426,7 +439,7 @@ document.addEventListener("DOMContentLoaded", () => {
       botao.setAttribute("aria-pressed", String(ativo));
     });
 
-    el.tituloLista.textContent = nomesFiltros[filtroAtual] || nomesFiltros.todas;
+    if (el.tituloLista) el.tituloLista.textContent = nomesFiltros[filtroAtual] || nomesFiltros.todas;
   }
 
   function renderizarTarefas() {
@@ -434,26 +447,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const fragmento = document.createDocumentFragment();
 
     resultado.forEach(t => fragmento.appendChild(criarElementoTarefa(t)));
-    el.lista.replaceChildren(fragmento);
+    if (el.lista) el.lista.replaceChildren(fragmento);
 
     const semTarefas = resultado.length === 0;
-    el.vazio.classList.toggle("visible", semTarefas);
+    if (el.vazio) el.vazio.classList.toggle("visible", semTarefas);
 
-    if (semTarefas) {
-      el.vazioTexto.textContent = el.pesquisa.value.trim()
+    if (semTarefas && el.vazioTexto) {
+      const termo = el.pesquisa ? el.pesquisa.value.trim() : "";
+      el.vazioTexto.textContent = termo
         ? "Tente pesquisar por outro termo ou mudar o filtro."
         : tarefas.length
           ? "Não há tarefas neste filtro."
           : "Adicione sua primeira tarefa para começar a organizar seu dia.";
     }
 
-    el.contador.textContent = resultado.length === 1
-      ? "1 tarefa exibida"
-      : `${resultado.length} tarefas exibidas`;
+    if (el.contador) {
+      el.contador.textContent = resultado.length === 1
+        ? "1 tarefa exibida"
+        : `${resultado.length} tarefas exibidas`;
+    }
 
-    el.resumoLista.textContent = tarefas.length
-      ? `${tarefas.filter(t => !t.concluida).length} tarefa(s) pendente(s) no total.`
-      : "Comece adicionando sua primeira tarefa.";
+    if (el.resumoLista) {
+      el.resumoLista.textContent = tarefas.length
+        ? `${tarefas.filter(t => !t.concluida).length} tarefa(s) pendente(s) no total.`
+        : "Comece adicionando sua primeira tarefa.";
+    }
 
     atualizarEstatisticas();
     atualizarFiltros();
@@ -461,15 +479,15 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function adicionarTarefa(evento) {
     evento.preventDefault();
-    const texto = el.campo.value.trim();
+    const texto = el.campo ? el.campo.value.trim() : "";
 
     if (!texto) {
       mostrarNotificacao("Digite o nome da tarefa.", "error");
-      el.campo.focus();
+      if (el.campo) el.campo.focus();
       return;
     }
 
-    if (el.data.value && !dataValida(el.data.value)) {
+    if (el.data && el.data.value && !dataValida(el.data.value)) {
       mostrarNotificacao("Selecione uma data válida.", "error");
       el.data.focus();
       return;
@@ -481,9 +499,9 @@ document.addEventListener("DOMContentLoaded", () => {
       concluida: false,
       favorita: false,
       fixada: false,
-      prioridade: Object.hasOwn(PRIORIDADES, el.prioridade.value) ? el.prioridade.value : "normal",
-      data: el.data.value || "",
-      categoria: CATEGORIAS.includes(el.categoria.value) ? el.categoria.value : "Pessoal",
+      prioridade: (el.prioridade && Object.hasOwn(PRIORIDADES, el.prioridade.value)) ? el.prioridade.value : "normal",
+      data: el.data ? el.data.value || "" : "",
+      categoria: (el.categoria && CATEGORIAS.includes(el.categoria.value)) ? el.categoria.value : "Pessoal",
       criadaEm: Date.now(),
       concluidaEm: null
     };
@@ -495,13 +513,13 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    el.form.reset();
-    el.prioridade.value = "normal";
-    el.categoria.value = "Pessoal";
+    if (el.form) el.form.reset();
+    if (el.prioridade) el.prioridade.value = "normal";
+    if (el.categoria) el.categoria.value = "Pessoal";
     filtroAtual = "todas";
     renderizarTarefas();
     mostrarNotificacao("Tarefa adicionada com sucesso.");
-    el.campo.focus();
+    if (el.campo) el.campo.focus();
   }
 
   function atualizarTarefa(id, alteracoes) {
@@ -742,6 +760,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function alterarOrdenacao() {
+    if (!el.ordenacao) return;
     const valor = el.ordenacao.value;
     if (!["data", "urgencia", "padrao", "alfabetica"].includes(valor)) return;
     configuracoes.ordenacao = valor;
@@ -819,41 +838,37 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function atualizarDataAtual() {
     const data = new Date();
-    el.dataAtual.textContent = data.toLocaleDateString("pt-BR", {
-      weekday: "short",
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
-    $("#ano-atual").textContent = data.getFullYear();
+    if (el.dataAtual) {
+      el.dataAtual.textContent = data.toLocaleDateString("pt-BR", {
+        weekday: "short",
+        day: "2-digit",
+        month: "short",
+        year: "numeric"
+      });
+    }
+    const anoAtual = $("#ano-atual");
+    if (anoAtual) anoAtual.textContent = data.getFullYear();
   }
 
   function configurarEventos() {
-    el.form.addEventListener("submit", adicionarTarefa);
-    el.tema.addEventListener("click", () => {
-      aplicarTema(configuracoes.tema === "escuro" ? "claro" : "escuro");
-    });
+    if (el.form) el.form.addEventListener("submit", adicionarTarefa);
+    if (el.tema) {
+      el.tema.addEventListener("click", () => {
+        aplicarTema(configuracoes.tema === "escuro" ? "claro" : "escuro");
+      });
+    }
 
-    el.backup.addEventListener("click", exportarBackup);
-    el.importar.addEventListener("click", () => el.arquivo.click());
-    el.arquivo.addEventListener("change", importarBackup);
-    el.pesquisa.addEventListener("input", renderizarTarefas);
-    el.ordenacao.addEventListener("change", alterarOrdenacao);
-    el.limpar.addEventListener("click", limparConcluidas);
+    if (el.backup) el.backup.addEventListener("click", exportarBackup);
+    if (el.importar && el.arquivo) el.importar.addEventListener("click", () => el.arquivo.click());
+    if (el.arquivo) el.arquivo.addEventListener("change", importarBackup);
+    if (el.pesquisa) el.pesquisa.addEventListener("input", renderizarTarefas);
+    if (el.ordenacao) el.ordenacao.addEventListener("change", alterarOrdenacao);
+    if (el.limpar) el.limpar.addEventListener("click", limparConcluidas);
 
-    el.atualizar.addEventListener("click", () => {
-      el.atualizar.disabled = true;
-      const icone = $("i", el.atualizar);
-      if (icone) icone.classList.add("fa-spin");
-      renderizarTarefas();
-
-      window.setTimeout(() => {
-        el.atualizar.disabled = false;
-        if (icone) icone.classList.remove("fa-spin");
-      }, 450);
-    });
-
-    $$(".filter").forEach(botao => {
+    if (el.atualizar) {
+      el.atualizar.addEventListener("click", () => {
+        el.atualizar.disabled = true;
+        const icone = $("i", el.atualizar);         if (icone) icone.classList.add("fa-spin");         renderizarTarefas();          window.setTimeout(() => {           el.atualizar.disabled = false;           if (icone) icone.classList.remove("fa-spin");         }, 450);       });     }      $$(".filter").forEach(botao => {
       botao.addEventListener("click", () => alterarFiltro(botao.dataset.filtro));
     });
 
@@ -866,7 +881,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (evento.key === "/" && !digitando) {
         evento.preventDefault();
-        el.pesquisa.focus();
+        if (el.pesquisa) el.pesquisa.focus();
       }
 
       if (evento.key === "Escape" && alvo === el.pesquisa) {
@@ -876,12 +891,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    el.dialogo.addEventListener("close", () => {
-      if (!dialogoResolve) return;
-      const resolver = dialogoResolve;
-      dialogoResolve = null;
-      resolver(el.dialogo.returnValue === "confirmar");
-    });
+    if (el.dialogo) {
+      el.dialogo.addEventListener("close", () => {
+        if (!dialogoResolve) return;
+        const resolver = dialogoResolve;
+        dialogoResolve = null;
+        resolver(el.dialogo.returnValue === "confirmar");
+      });
+    }
   }
 
   carregarDados();
